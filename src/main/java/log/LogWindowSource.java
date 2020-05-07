@@ -52,6 +52,11 @@ public class LogWindowSource
     {
         LogEntry entry = new LogEntry(logLevel, strMessage);
         m_messages.add(entry);
+        synchronized (m_concurrentQueue)
+        {
+            addNewMessage(entry);
+        }
+
         LogChangeListener [] activeListeners = m_activeListeners;
         if (activeListeners == null)
         {

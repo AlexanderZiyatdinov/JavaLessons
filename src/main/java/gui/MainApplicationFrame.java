@@ -1,11 +1,11 @@
 package gui;
 
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.*;
+import javax.swing.event.InternalFrameListener;
 
 import gui.dialogManager.DialogFrame;
 import gui.dialogManager.DialogMainFrame;
@@ -16,34 +16,48 @@ import log.Logger;
 public class MainApplicationFrame extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
 
     public MainApplicationFrame() {
-        int inset = 50;
+        int inset = 10;
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
         int sizeWidth = screenSize.width;
         int sizeHeight = screenSize.height;
         setBounds(inset, inset,
             sizeWidth  - inset*2,
             sizeHeight - inset*2);
         setContentPane(desktopPane);
+
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
+
         GameWindow gameWindow = new GameWindow();
         gameWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         gameWindow.addInternalFrameListener(new DialogFrame(this, gameWindow));
         gameWindow.setSize(sizeWidth,  sizeHeight);
         addWindow(gameWindow);
 
-
         setJMenuBar(generateMenuBar());
     }
-    
+
+    private GameWindow addGameWidnow()
+    {
+        GameWindow gameWindow = new GameWindow();
+        gameWindow.setSize(500,500);
+        gameWindow.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        gameWindow.addInternalFrameListener(new DialogFrame(this, gameWindow));
+        return gameWindow;
+
+
+    }
+
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
         logWindow.setLocation(10,10);
-        logWindow.setSize(300, 800);
+        logWindow.setSize(300,800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
         logWindow.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -56,6 +70,13 @@ public class MainApplicationFrame extends JFrame
     {
         desktopPane.add(frame);
         frame.setVisible(true);
+    }
+
+    private void setSizes(JInternalFrame frame, int x, int y, int width, int height)
+    {
+    frame.setLocation(x, y);
+    frame.setSize(width,  height);
+    frame.setResizable(true);
     }
 
     private JMenuBar generateMenuBar()

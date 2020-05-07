@@ -3,10 +3,12 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
+import java.awt.Rectangle;
 
-import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 
+import WindowSerializer.Downloader;
+import WindowSerializer.Saver;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
@@ -15,6 +17,7 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
 {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
+    private String name = "logger";
 
     public LogWindow(LogWindowSource logSource) 
     {
@@ -27,8 +30,8 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_logContent, BorderLayout.CENTER);
         getContentPane().add(panel);
-        pack();
         updateLogContent();
+        new Downloader(this, name).download();
     }
 
     private void updateLogContent()
@@ -52,5 +55,15 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
     public void unregisterListener()
     {
         m_logSource.unregisterListener(this);
+    }
+
+    @Override
+    public void dispose()
+    {
+        Rectangle bounds = this.getBounds();
+        Saver size = new Saver(bounds.x,bounds.y, bounds.width, bounds.height, this.isIcon);
+        size.save(name);
+        m_logSource.unregisterListener(this);
+        super.dispose();
     }
 }

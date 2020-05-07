@@ -20,7 +20,8 @@ import javax.swing.JPanel;
 public class GameVisualizer extends JPanel
 {
     private final Timer m_timer = initTimer();
-    
+    private final GameWindow gameWindow;
+
     private static Timer initTimer() 
     {
         Timer timer = new Timer("events generator", true);
@@ -31,13 +32,15 @@ public class GameVisualizer extends JPanel
     private volatile double m_robotPositionY = 100; 
     private volatile double m_robotDirection = 0; 
 
-    private volatile int m_targetPositionX = 150;
-    private volatile int m_targetPositionY = 100;
+    private volatile double m_targetPositionX = 150;
+    private volatile double m_targetPositionY = 100;
     
     private static final double maxVelocity = 0.1;
     private static final double maxAngularVelocity = 0.01;
-    
-    public GameVisualizer() 
+    private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+
+    public GameVisualizer(GameWindow gameWindow)
     {
         m_timer.schedule(new TimerTask()
         {
@@ -65,12 +68,13 @@ public class GameVisualizer extends JPanel
             }
         });
         setDoubleBuffered(true);
+        this.gameWindow = gameWindow;
     }
 
     protected void setTargetPosition(Point p)
     {
         m_targetPositionX = p.x ;
-        m_targetPositionY = p.y ;
+        m_targetPositionY = p.y;
     }
     
     protected void onRedrawEvent()
@@ -92,9 +96,24 @@ public class GameVisualizer extends JPanel
         
         return asNormalizedRadians(Math.atan2(diffY, diffX));
     }
-    
+
+    private void updateScreen()
+    {
+        double rightX = gameWindow.getWidth();
+        double downY = gameWindow.getHeight();
+        double leftX = 0;
+        double upY = 0;
+
+        m_robotPositionX = applyLimits(m_robotPositionX, leftX, rightX);
+        m_robotPositionY = applyLimits(m_robotPositionY, upY, downY);
+
+        m_targetPositionX = applyLimits(m_targetPositionX, leftX, rightX);
+        m_targetPositionY = applyLimits(m_targetPositionY, upY, downY);
+    }
+
     protected void onModelUpdateEvent()
     {
+        updateScreen();
         double distance = distance(m_targetPositionX, m_targetPositionY, 
             m_robotPositionX, m_robotPositionY);
 
@@ -118,7 +137,9 @@ public class GameVisualizer extends JPanel
     {
         if (value < min)
             return min;
-        return Math.min(value, max);
+        if (value > max)
+            return max;
+        return value;
     }
     
     private void moveRobot(double velocity, double angularVelocity, double duration)
@@ -167,7 +188,7 @@ public class GameVisualizer extends JPanel
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g; 
         drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), m_robotDirection);
-        drawTarget(g2d, m_targetPositionX, m_targetPositionY);
+        drawTarget(g2d, round(m_targetPositionX), round(m_targetPositionY));
     }
     
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
